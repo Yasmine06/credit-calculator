@@ -5,16 +5,24 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const apiKey = '3588cced-e0c3-47da-a643-c4a43819662b';  // Replace with your actual API key
+const apiKey = '3588cced-e0c3-47da-a643-c4a43819662b';  // Replace with your actual CoinMarketCap API key
 
-// Enable CORS with additional configuration
+// ✅ Use CORS middleware globally
 app.use(cors({
-  origin: '*', // Allow all origins (for testing)
-  methods: 'GET, POST, OPTIONS',
-  allowedHeaders: 'Content-Type, Authorization'
+  origin: '*', // Allow all origins for testing
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Route to fetch USDT to EUR conversion rate
+// ✅ Explicitly set CORS headers for preflight requests
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.send();
+});
+
+// ✅ Route to fetch USDT to EUR conversion rate
 app.get('/get-usdt-to-eur', async (req, res) => {
   try {
     const response = await axios.get(
@@ -22,19 +30,13 @@ app.get('/get-usdt-to-eur', async (req, res) => {
       { headers: { 'X-CMC_PRO_API_KEY': apiKey } }
     );
 
-    // Explicitly set CORS headers on the response
+    // ✅ Ensure CORS headers are added to response
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching exchange rate:', error);
     res.status(500).json({ error: 'Error fetching conversion rate' });
   }
-});
-
-// Handle OPTIONS requests for CORS preflight
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.send();
 });
 
 // Start the server
